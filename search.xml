@@ -8,7 +8,8 @@
         <category>后端</category>
       </categories>
       <tags>
-        <tag>koa web</tag>
+        <tag>web</tag>
+        <tag>koa</tag>
       </tags>
   </entry>
   <entry>
@@ -19,7 +20,8 @@
         <category>web</category>
       </categories>
       <tags>
-        <tag>http web</tag>
+        <tag>http</tag>
+        <tag>web</tag>
       </tags>
   </entry>
   <entry>
@@ -30,7 +32,8 @@
         <category>web</category>
       </categories>
       <tags>
-        <tag>http web</tag>
+        <tag>http</tag>
+        <tag>web</tag>
       </tags>
   </entry>
   <entry>
