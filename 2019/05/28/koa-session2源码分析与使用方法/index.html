@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.0.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.0.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.0.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.0.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.0.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="store.jsstore.js 用来作为存储session的仓库，它定义了一个Store类，含有sessions和__timer两个map类型的属性，都是通过一个sid获取对应的session和timer。代码如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344const &amp;#123">
+<meta name="keywords" content="koa web">
+<meta property="og:type" content="article">
+<meta property="og:title" content="koa-session2源码分析与使用方法">
+<meta property="og:url" content="https://huang-junjie.github.io/2019/05/28/koa-session2源码分析与使用方法/index.html">
+<meta property="og:site_name" content="Huangjj">
+<meta property="og:description" content="store.jsstore.js 用来作为存储session的仓库，它定义了一个Store类，含有sessions和__timer两个map类型的属性，都是通过一个sid获取对应的session和timer。代码如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344const &amp;#123">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-05-30T17:16:42.229Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="koa-session2源码分析与使用方法">
+<meta name="twitter:description" content="store.jsstore.js 用来作为存储session的仓库，它定义了一个Store类，含有sessions和__timer两个map类型的属性，都是通过一个sid获取对应的session和timer。代码如下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344const &amp;#123">
+
+
+
+
+
+
+  <link rel="canonical" href="https://huang-junjie.github.io/2019/05/28/koa-session2源码分析与使用方法/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>koa-session2源码分析与使用方法 | Huangjj</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Huangjj</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://huang-junjie.github.io/2019/05/28/koa-session2源码分析与使用方法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="HuangJunjie">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Huangjj">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">koa-session2源码分析与使用方法
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-28 22:46:26" itemprop="dateCreated datePublished" datetime="2019-05-28T22:46:26+08:00">2019-05-28</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-05-31 01:16:42" itemprop="dateModified" datetime="2019-05-31T01:16:42+08:00">2019-05-31</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/后端/" itemprop="url" rel="index"><span itemprop="name">后端</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">7.6k</span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">7 分钟</span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="store-js"><a href="#store-js" class="headerlink" title="store.js"></a>store.js</h2><p>store.js 用来作为存储session的仓库，它定义了一个<code>Store</code>类，含有<code>sessions</code>和<code>__timer</code>两个map类型的属性，都是通过一个<code>sid</code>获取对应的session和timer。代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; randomBytes &#125; = <span class="built_in">require</span>(<span class="string">'crypto'</span>);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Store</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>() &#123;</span><br><span class="line">        <span class="keyword">this</span>.sessions = <span class="keyword">new</span> <span class="built_in">Map</span>();</span><br><span class="line">        <span class="keyword">this</span>.__timer = <span class="keyword">new</span> <span class="built_in">Map</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    getID(length) &#123;</span><br><span class="line">        <span class="keyword">return</span> randomBytes(length).toString(<span class="string">'hex'</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">get</span>(sid) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="keyword">this</span>.sessions.has(sid)) <span class="keyword">return</span> <span class="literal">undefined</span>;</span><br><span class="line">        <span class="comment">// We are decoding data coming from our Store, so, we assume it was sanitized before storing</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">JSON</span>.parse(<span class="keyword">this</span>.sessions.get(sid));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">set</span>(session, &#123; sid =  <span class="keyword">this</span>.getID(<span class="number">24</span>), maxAge &#125; = &#123;&#125;) &#123;</span><br><span class="line">        <span class="comment">// Just a demo how to use maxAge and some cleanup</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.sessions.has(sid) &amp;&amp; <span class="keyword">this</span>.__timer.has(sid)) &#123;</span><br><span class="line">            <span class="keyword">const</span> __timeout = <span class="keyword">this</span>.__timer.get(sid);</span><br><span class="line">            <span class="keyword">if</span> (__timeout) clearTimeout(__timeout);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (maxAge) &#123;</span><br><span class="line">            <span class="keyword">this</span>.__timer.set(sid, setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">this</span>.destroy(sid), maxAge));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.sessions.set(sid, <span class="built_in">JSON</span>.stringify(session));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'Set session error:'</span>, err);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> sid;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    destroy(sid) &#123;</span><br><span class="line">        <span class="keyword">this</span>.sessions.delete(sid);</span><br><span class="line">        <span class="keyword">this</span>.__timer.delete(sid);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = Store;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>构造函数：初始化<code>sessions</code>和<code>__timer</code>两个map;</li>
+<li><code>getID(length)</code>：生成给定长度的随机二进制串，转为十六进制字符串后返回，作为session的id；</li>
+<li><code>get(sid)</code>：通过sid，获取对应的session对象，若sid无效，返回undefined；</li>
+<li><code>set(session, { sid =  this.getID(24), maxAge } = {})</code>：参数1是一个对象，将被转化为json字符串存入仓库中；参数2是一个对象，使用解构赋值，赋值给sid，maxAge：若参数2的对象没有sid，则会生成一个新的sid，若参数2没有maxAge，则maxAge为undefined, 该session将不会过期。set函数功能为：给传来的sid、或新生成的sid设置一个对应的json对象字符串，存储在<code>sessions</code>map中，若maxAge不为空，则给该sid设置一个对应的定时器，maxAge毫秒后执行<code>destroy(sid)</code>函数。若原sid存在，可以重置过期时间。</li>
+<li><code>destroy(sid)</code>：删除<code>sessions</code>和<code>__timer</code>两个map中，sid对应的项。</li>
+</ul>
+<h2 id="koa-session2-index-js"><a href="#koa-session2-index-js" class="headerlink" title="koa-session2/index.js"></a>koa-session2/index.js</h2><p>index.js 是koa-session2的入口文件，向外暴露一个函数，参数是一个配置对象，返回一个异步函数<code>async (ctx, next) =&gt; {}</code>用作中间件。代码和注释如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Store = <span class="built_in">require</span>(<span class="string">'./libs/store.js'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function">(<span class="params">opts = &#123;&#125;</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">//key默认为"koa:sess",用于作为传给前端cookie的name；若opts中含有key，则使用opts中的值</span></span><br><span class="line">    <span class="comment">//store默认为Store的一个实例；若opts中含有store，则使用opts中的store</span></span><br><span class="line">    <span class="comment">//关于cookie所需的其他配置信息如maxAge等在opts参数中，可以为空</span></span><br><span class="line">    <span class="keyword">const</span> &#123; key = <span class="string">"koa:sess"</span>, store = <span class="keyword">new</span> Store() &#125; = opts;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">        <span class="comment">//首先获得请求头中的cookie中名为key的cookie值作为session id</span></span><br><span class="line">        <span class="keyword">let</span> id = ctx.cookies.get(key, opts);</span><br><span class="line">        <span class="keyword">let</span> need_refresh = <span class="literal">false</span>;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//若id不存在，则新建一个空的session</span></span><br><span class="line">        <span class="keyword">if</span>(!id) &#123;</span><br><span class="line">            ctx.session = &#123;&#125;;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//根据id从store中查找session</span></span><br><span class="line">            ctx.session = <span class="keyword">await</span> store.get(id, ctx);</span><br><span class="line">			</span><br><span class="line">            <span class="comment">//若未查到session，则说明原id（请求头中的cookie值）无效，</span></span><br><span class="line">            <span class="comment">//需要重新生成一个sid，发送给前端作为cookie</span></span><br><span class="line">            <span class="comment">// reassigning session ID if current is not found</span></span><br><span class="line">            <span class="keyword">if</span> (ctx.session == <span class="literal">null</span>) &#123;</span><br><span class="line">                id = <span class="keyword">await</span> store.getID(<span class="number">24</span>);</span><br><span class="line">                need_refresh = <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// check session must be a no-null object</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">typeof</span> ctx.session !== <span class="string">"object"</span> || ctx.session == <span class="literal">null</span>) &#123;</span><br><span class="line">                ctx.session = &#123;&#125;;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//把原session对象转为json字符串存储在old变量中，在后面用于比较判断session是否改变</span></span><br><span class="line">        <span class="keyword">const</span> old = <span class="built_in">JSON</span>.stringify(ctx.session);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// add refresh function</span></span><br><span class="line">        ctx.session.refresh = <span class="function"><span class="params">()</span> =&gt;</span> &#123;need_refresh = <span class="literal">true</span>&#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//将控制权交给其他中间件处理，在其他中间件中，可以通过ctx.session修改session</span></span><br><span class="line">        <span class="keyword">await</span> next();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// remove refresh function</span></span><br><span class="line">        <span class="keyword">if</span>(ctx.session &amp;&amp; <span class="string">'refresh'</span> <span class="keyword">in</span> ctx.session) &#123;</span><br><span class="line">            <span class="keyword">delete</span> ctx.session.refresh</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//将现在的session对象转化为json字符串，与原session字符串进行比较</span></span><br><span class="line">        <span class="keyword">const</span> sess = <span class="built_in">JSON</span>.stringify(ctx.session);</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//若未改变，且need_refresh为假（在其他中间件中未调用过ctx.session.refresh()函数）</span></span><br><span class="line">        <span class="comment">// if not changed</span></span><br><span class="line">        <span class="keyword">if</span>(!need_refresh &amp;&amp; old == sess) <span class="keyword">return</span>;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">// if is an empty object</span></span><br><span class="line">        <span class="keyword">if</span>(sess == <span class="string">'&#123;&#125;'</span>) &#123;</span><br><span class="line">            ctx.session = <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//若id存在，且现在session为空，</span></span><br><span class="line">        <span class="comment">//则在store中删除该id对应session和timer，且给前端设置cookie key的值为空</span></span><br><span class="line">        <span class="comment">// need clear old session</span></span><br><span class="line">        <span class="keyword">if</span>(id &amp;&amp; !ctx.session) &#123;</span><br><span class="line">            <span class="keyword">await</span> store.destroy(id, ctx);</span><br><span class="line">            ctx.cookies.set(key, <span class="literal">null</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">//在store中生成id对应的session，</span></span><br><span class="line">        <span class="comment">//session值为现在ctx中的session，</span></span><br><span class="line">        <span class="comment">//opts中的配置信息如maxAge会被传入store.set的第二个参数对象中（maxAge可以不存在，则store中会创建一个不过期的session），</span></span><br><span class="line">        <span class="comment">//id也会被传入store.set的第二个参数对象中作为sid（id可以不存在，则store会新建一个sid，并将sid返回）</span></span><br><span class="line">        <span class="comment">// set/update session</span></span><br><span class="line">        <span class="keyword">const</span> sid = <span class="keyword">await</span> store.set(ctx.session, <span class="built_in">Object</span>.assign(&#123;&#125;, opts, &#123;<span class="attr">sid</span>: id&#125;), ctx);		</span><br><span class="line">        <span class="comment">//3种情况会给前端发送set-cookie头：</span></span><br><span class="line">        <span class="comment">//1. 原id不存在，即原请求头中不含key对应的cookie，而后端为其创建了一个session和对应的sid，所以需要向前端发送set-cookie头</span></span><br><span class="line">        <span class="comment">//2. id !== sid</span></span><br><span class="line">        <span class="comment">//3. need_refresh为真（在其他中间件调用过ctx.session.refresh()函数）</span></span><br><span class="line">        <span class="keyword">if</span>(!id || id !== sid || need_refresh) ctx.cookies.set(key, sid, opts);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Reeexport Store to not use reference to internal files</span></span><br><span class="line"><span class="built_in">module</span>.exports.Store = Store;</span><br></pre></td></tr></table></figure>
+<h2 id="koa-session2使用方法"><a href="#koa-session2使用方法" class="headerlink" title="koa-session2使用方法"></a>koa-session2使用方法</h2><p>由上述代码及注释，可以总结出以下几点使用方法：</p>
+<h3 id="1-注册"><a href="#1-注册" class="headerlink" title="1. 注册"></a>1. 注册</h3><p>将koa-session2中间件注册在其他需要使用session的中间件之前。后端在收到请求时，先通过koa-session2中间件向ctx添加了session属性，然后将控制器交给其他中间件，其他中间件中可以使用ctx.session，最后在其他中间件执行完后回到koa-session2，koa-session2会根据当前状态决定是否给前端发送cookie。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">app.use(session(&#123;</span><br><span class="line">  store: <span class="keyword">new</span> Store(),  <span class="comment">//session仓库，可以使用Redis</span></span><br><span class="line">  key: <span class="string">"SESSIONID"</span>,	<span class="comment">//cookie的name</span></span><br><span class="line">  maxAge: <span class="number">6000000</span>,	<span class="comment">//cookie有效时间（毫秒），若不设置，则cookie永久有效</span></span><br><span class="line">&#125;));</span><br></pre></td></tr></table></figure>
+<h3 id="2-面对前端发送请求的各种情况，后端处理该请求的中间异步函数如何处理能够利用koa-session实现seesion机制？"><a href="#2-面对前端发送请求的各种情况，后端处理该请求的中间异步函数如何处理能够利用koa-session实现seesion机制？" class="headerlink" title="2. 面对前端发送请求的各种情况，后端处理该请求的中间异步函数如何处理能够利用koa-session实现seesion机制？"></a>2. 面对前端发送请求的各种情况，后端处理该请求的中间异步函数如何处理能够利用koa-session实现seesion机制？</h3><ol>
+<li>前端请求无对应的cookie（sid）时，分析以下三种情况：<ol>
+<li>进行登录请求：从源码可以看出，当sid不存在时，koa-session2首先会创一个空的session对象，若在其他中间件中修改了<code>ctx.session</code>导致<code>old != sess</code>或者在其他中间件中调用了<code>ctx.session.refresh()</code>使<code>need_refresh</code>为<code>true</code>，可以使koa-session2继续下面的步骤，为该session创建一个sid，将sid作为cookie返回给前端。一般我们可以在用户无cookie进行登录操作时，验证完用户名、密码后，给<code>ctx.session</code>添加一个<code>username</code>属性，这样既可以时session与用户关联，也能时koa-session2将sid发给前端。</li>
+<li>进行不需要cookie的请求：由于我们不希望在这里给该请求生成session和cookie，因此要注意在处理该请求时，不能给ctx.session添加属性或调用<code>ctx.session.refresh()</code>。</li>
+<li>进行需要cookie的请求：若该请求需要有效身份信息，而前端请求无cookie，则后端返回一个重定向至登录界面即可。如何判断是请求否有对应cookie：（1）可以在处理该请求的异步函数中检查是否有<code>ctx.cookies.get(key）</code>；但可能前端有对应cookie，但该cookie无效，因此推荐方法（2）。（2）检查<code>ctx.session == {}</code>是否成立。因为对于一个有效的cookie，我们在之前登录操作中就给该session添加了一个username属性，因此若<code>ctx.session == {}</code>，则说明该cookie无效，后端返回一个重定向即可。</li>
+</ol>
+</li>
+<li>前端请求对应的cookie（sid）无效时：<ol>
+<li>进行登录请求：由源码可知koa-session2首先根据该无效sid从store中查找session时，发现session为空，则会生成一个新的sid，并且生成一个空的session对象。在经过其他中间件后判断<code>if(id &amp;&amp; !ctx.session)</code>，若为真，则koa-session2会删除该session对象，并将前端对应cookie置为空。因此，与情况1.1一样处理即可：验证完用户名、密码后，给<code>ctx.session</code>添加一个<code>username</code>属性。</li>
+<li>进行不需要cookie的请求：与情况1.2一样，我们不希望在这里给该请求生成session和cookie，因此我们在处理该请求时，不给ctx.session添加属性即可，这样后端会将前端该错误cookie清空。</li>
+<li>进行需要cookie的请求：与情况1.3一样，检查到<code>ctx.session == {}</code>，则说明cookie无效，返回重定向登录界面即可。</li>
+</ol>
+</li>
+<li>前端拥有正确的cookie时：<ol>
+<li>进行登录操作：有两种处理方式：（1）检查到<code>ctx.session != {}</code>，说明cookie正确，返回重定向至主页面即可，前端在请求主页面时，会自动携带cookie，使用对应的身份进行操作。（2）在验证完用户名和密码后，先将<code>ctx.session</code>置为空对象，再给<code>ctx.session</code>添加一个<code>username</code>属性。无论<code>ctx.session</code>是否与原先相同，后端是否发送cookie给前端，前端存的都是原来的cookie，而此cookie就是现在登录的用户对应session的sid。总结：推荐方法（2），因为方法二可以处理登录新用户的情况，这样在登录新用户的同时相对于登出了原用户；且方法（2）处理登录请求时无需加额外条件判断，无论前端是否携带cookie，均先将<code>ctx.session</code>置为空对象，再给<code>ctx.session</code>添加一个<code>username</code>属性即可，因为若未携带cookie，则<code>ctx.session</code>本身就为空，先将<code>ctx.session</code>置为空对象并无影响。</li>
+<li>进行其他请求时，根据用户身份进行相应的逻辑处理即可。</li>
+</ol>
+</li>
+</ol>
+<h3 id="3-总结后端请求处理函数的处理方法"><a href="#3-总结后端请求处理函数的处理方法" class="headerlink" title="3. 总结后端请求处理函数的处理方法"></a>3. 总结后端请求处理函数的处理方法</h3><ol>
+<li>登录：验证用户名密码成功后，执行<code>ctx.session = {username: &lt;username&gt;}</code>即可，否则返回登录失败。</li>
+<li>需要正确cookie的请求：若<code>ctx.session == {}</code>，则返回重定向至登录界面（注：若为xhr请求，前端收到重定向后要自行处理进行页面跳转），否则，按用户身份进行正常请求处理。</li>
+<li>不需要cookie的请求：注意不要修改<code>ctx.session</code>或调用<code>ctx.session.refresh()</code>即可。</li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/koa-web/" rel="tag"># koa web</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/16/http协议/" rel="next" title="http协议">
+                <i class="fa fa-chevron-left"></i> http协议
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="HuangJunjie">
+            
+              <p class="site-author-name" itemprop="name">HuangJunjie</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">2</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/Huang-Junjie" title="GitHub &rarr; https://github.com/Huang-Junjie" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#store-js"><span class="nav-number">1.</span> <span class="nav-text">store.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#koa-session2-index-js"><span class="nav-number">2.</span> <span class="nav-text">koa-session2/index.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#koa-session2使用方法"><span class="nav-number">3.</span> <span class="nav-text">koa-session2使用方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-注册"><span class="nav-number">3.1.</span> <span class="nav-text">1. 注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-面对前端发送请求的各种情况，后端处理该请求的中间异步函数如何处理能够利用koa-session实现seesion机制？"><span class="nav-number">3.2.</span> <span class="nav-text">2. 面对前端发送请求的各种情况，后端处理该请求的中间异步函数如何处理能够利用koa-session实现seesion机制？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-总结后端请求处理函数的处理方法"><span class="nav-number">3.3.</span> <span class="nav-text">3. 总结后端请求处理函数的处理方法</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">HuangJunjie</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+    <span title="站点总字数">22k</span>
+  
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    
+    <span title="站点阅读时长">20 分钟</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.0.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=7.0.1"></script>
+
+  <script src="/js/src/motion.js?v=7.0.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/src/schemes/muse.js?v=7.0.1"></script>
+
+
+
+
+  
+  <script src="/js/src/scrollspy.js?v=7.0.1"></script>
+<script src="/js/src/post-details.js?v=7.0.1"></script>
+
+
+
+  
+
+
+  <script src="/js/src/next-boot.js?v=7.0.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+  <script>
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url).replace(/\/{2,}/g, '/');
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x"></i></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x"></i></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
