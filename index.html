@@ -419,7 +419,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-05-31 01:39:25" itemprop="dateModified" datetime="2019-05-31T01:39:25+08:00">2019-05-31</time>
+                <time title="修改时间：2019-06-01 01:11:04" itemprop="dateModified" datetime="2019-06-01T01:11:04+08:00">2019-06-01</time>
               
             
           </span>
@@ -465,7 +465,7 @@
                 
                   <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="本文字数">7.7k</span>
+                <span title="本文字数">7.8k</span>
               
 
               
@@ -519,24 +519,24 @@
 <li>前端请求无对应的cookie（sid）时，分析以下三种情况：<ol>
 <li>进行登录请求：从源码可以看出，当sid不存在时，koa-session2首先会创一个空的session对象，若在其他中间件中修改了<code>ctx.session</code>导致<code>old != sess</code>或者在其他中间件中调用了<code>ctx.session.refresh()</code>使<code>need_refresh</code>为<code>true</code>，可以使koa-session2继续下面的步骤，为该session创建一个sid，将sid作为cookie返回给前端。一般我们可以在用户无cookie进行登录操作时，验证完用户名、密码后，给<code>ctx.session</code>添加一个<code>username</code>属性，这样既可以时session与用户关联，也能时koa-session2将sid发给前端。</li>
 <li>进行不需要cookie的请求：由于我们不希望在这里给该请求生成session和cookie，因此要注意在处理该请求时，不能给ctx.session添加属性或调用<code>ctx.session.refresh()</code>。</li>
-<li>进行需要cookie的请求：若该请求需要有效身份信息，而前端请求无cookie，则后端返回一个重定向至登录界面即可。如何判断是请求否有对应cookie：（1）可以在处理该请求的异步函数中检查是否有<code>ctx.cookies.get(key）</code>；但可能前端有对应cookie，但该cookie无效，因此推荐方法（2）。（2）检查<code>ctx.session == {}</code>是否成立。因为对于一个有效的cookie，我们在之前登录操作中就给该session添加了一个username属性，因此若<code>ctx.session == {}</code>，则说明该cookie无效，后端返回一个重定向即可。</li>
+<li>进行需要cookie的请求：若该请求需要有效身份信息，而前端请求无cookie，则后端返回一个重定向至登录界面即可。如何判断是请求否有对应cookie：（1）可以在处理该请求的异步函数中检查是否有<code>ctx.cookies.get(key）</code>；但可能前端有对应cookie，但该cookie无效，因此推荐方法（2）。（2）检查<code>ctx.session.username</code>是否存在。因为对于一个有效的cookie，我们在之前登录操作中就给该session添加了一个username属性，因此若<code>ctx.session.username</code>不存在，则说明该cookie无效，后端返回一个重定向即可。</li>
 </ol>
 </li>
 <li>前端请求对应的cookie（sid）无效时：<ol>
 <li>进行登录请求：由源码可知koa-session2首先根据该无效sid从store中查找session时，发现session为空，则会生成一个新的sid，并且生成一个空的session对象。在经过其他中间件后判断<code>if(id &amp;&amp; !ctx.session)</code>，若为真，则koa-session2会删除该session对象，并将前端对应cookie置为空。因此，与情况1.1一样处理即可：验证完用户名、密码后，给<code>ctx.session</code>添加一个<code>username</code>属性。</li>
 <li>进行不需要cookie的请求：与情况1.2一样，我们不希望在这里给该请求生成session和cookie，因此我们在处理该请求时，不给ctx.session添加属性即可，这样后端会将前端该错误cookie清空。</li>
-<li>进行需要cookie的请求：与情况1.3一样，检查到<code>ctx.session == {}</code>，则说明cookie无效，返回重定向登录界面即可。</li>
+<li>进行需要cookie的请求：与情况1.3一样，检查到<code>ctx.session.username</code>不存在，则说明cookie无效，返回重定向登录界面即可。</li>
 </ol>
 </li>
 <li>前端拥有正确的cookie时：<ol>
-<li>进行登录操作：有两种处理方式：（1）检查到<code>ctx.session != {}</code>，说明cookie正确，返回重定向至主页面即可，前端在请求主页面时，会自动携带cookie，使用对应的身份进行操作。（2）在验证完用户名和密码后，先将<code>ctx.session</code>置为空对象，再给<code>ctx.session</code>添加一个<code>username</code>属性。无论<code>ctx.session</code>是否与原先相同，后端是否发送cookie给前端，前端存的都是原来的cookie，而此cookie就是现在登录的用户对应session的sid。总结：推荐方法（2），因为方法二可以处理登录新用户的情况，这样在登录新用户的同时相对于登出了原用户；且方法（2）处理登录请求时无需加额外条件判断，无论前端是否携带cookie，均先将<code>ctx.session</code>置为空对象，再给<code>ctx.session</code>添加一个<code>username</code>属性即可，因为若未携带cookie，则<code>ctx.session</code>本身就为空，先将<code>ctx.session</code>置为空对象并无影响。</li>
+<li>进行登录操作：有两种处理方式：（1）检查到<code>ctx.session.username</code>存在，说明cookie正确，返回重定向至主页面即可，前端在请求主页面时，会自动携带cookie，使用对应的身份进行操作。（2）在验证完用户名和密码后，先将<code>ctx.session</code>置为空对象，再给<code>ctx.session</code>添加一个<code>username</code>属性。无论<code>ctx.session</code>是否与原先相同，后端是否发送cookie给前端，前端存的都是原来的cookie，而此cookie就是现在登录的用户对应session的sid。总结：推荐方法（2），因为方法二可以处理登录新用户的情况，这样在登录新用户的同时相对于登出了原用户；且方法（2）处理登录请求时无需加额外条件判断，无论前端是否携带cookie，均先将<code>ctx.session</code>置为空对象，再给<code>ctx.session</code>添加一个<code>username</code>属性即可。因为若请求未携带cookie，则<code>ctx.session</code>本身就只含一个<code>refresh</code>函数，且在回到koa-session2后首先会将<code>refresh</code>从<code>ctx.session</code>中清除，先将<code>ctx.session</code>置为空对象并无影响。</li>
 <li>进行其他请求时，根据用户身份进行相应的逻辑处理即可。</li>
 </ol>
 </li>
 </ol>
 <h3 id="3-总结后端请求处理函数的处理方法"><a href="#3-总结后端请求处理函数的处理方法" class="headerlink" title="3. 总结后端请求处理函数的处理方法"></a>3. 总结后端请求处理函数的处理方法</h3><ol>
 <li>登录：验证用户名密码成功后，执行<code>ctx.session = {username: &lt;username&gt;}</code>即可，否则返回登录失败。</li>
-<li>需要正确cookie的请求：若<code>ctx.session == {}</code>，则返回重定向至登录界面（注：若为xhr请求，前端收到重定向后要自行处理进行页面跳转）；否则，可以根据<code>ctx.session.username</code>，得到用户身份进行正常请求处理，可以向<code>ctx.session</code>添加其他属性存储会话信息。</li>
+<li>需要正确cookie的请求：若<code>ctx.session.username</code>存在，则返回重定向至登录界面（注：若为xhr请求，前端收到重定向后要自行处理进行页面跳转）；否则，可以根据<code>ctx.session.username</code>，得到用户身份进行正常请求处理，可以向<code>ctx.session</code>添加其他属性存储会话信息。</li>
 <li>不需要cookie的请求：注意不要修改<code>ctx.session</code>或调用<code>ctx.session.refresh()</code>即可。</li>
 </ol>
 
